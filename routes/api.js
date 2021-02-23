@@ -16,13 +16,27 @@ module.exports = function (app) {
       let fl = solver.checkRowPlacement();
       let col = solver.checkColPlacement();
       let region = solver.checkRegionPlacement()
+      let collection = [
+        {area: fl, name: 'row'},
+        {area: col, name: 'column'},
+        {area: region, name: 'region'}
+      ] 
       console.log(fl, 'fl')
       console.log(col, 'col')
       console.log(region, 'reg')
 
-      for(let i = 0; i < region.length; i++){
-        
+      if(fl && col && region){
+        res.json({ "valid": true })
+      }else{
+        let conflict = [];
+
+        for(let elem of collection){
+          if(!elem.area) conflict.push( elem.name )
+        }
+
+        res.json({ "valid": false, "conflict": conflict })
       }
+
     });
     
   app.route('/api/solve')
