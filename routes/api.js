@@ -5,13 +5,12 @@ let solver = new SudokuSolver();
 
 module.exports = function (app) {
   
-
   app.route('/api/check')
     .post((req, res) => {
       let puzzleString = req.body.puzzle;
       let regex = req.body.coordinate.match(/(^[A-I])([1-9])$/)
       let solver = new SudokuSolver(puzzleString, regex[1], regex[2], req.body.value);
-      //console.log(req.body, 'req.body')
+      console.log(req.body, 'req.body')
       //console.log(regex, 'regex')
       //console.log(regex[1], '1')
       let fl = solver.checkRowPlacement();
@@ -20,6 +19,10 @@ module.exports = function (app) {
       console.log(fl, 'fl')
       console.log(col, 'col')
       console.log(region, 'reg')
+
+      for(let i = 0; i < region.length; i++){
+        
+      }
     });
     
   app.route('/api/solve')
