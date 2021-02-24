@@ -1,10 +1,13 @@
 class SudokuSolver {
-  constructor(puzzleString, row, column, value){
-    this.puzzleString = puzzleString;
-    this.arrPuzzle = String( puzzleString ).split('')
-    this.row = row;
-    this.column = column;
-    this.value = value;
+  constructor(objBody){
+    let regex = objBody ? objBody.coordinate.match(/^([A-I])([1-9])$/) : '';
+    this.row = regex ? regex[1] : '';
+    this.column = regex ? regex[2] : '';
+    this.puzzleString = objBody && objBody.puzzle ? objBody.puzzle : '';
+    this.arrPuzzle = String( this.puzzleString ).split('')
+    this.value = objBody && objBody.value ? objBody.value : '';
+    this.validFields = objBody && objBody.puzzle &&  objBody.coordinate  && objBody.value;
+
     this.objRows = {
       'A':{ nn:0, pos: [0, 8], rowRegion: 1} , 
       'B': { nn: 1, pos: [9, 17] , rowRegion: 1 }, 
@@ -32,7 +35,43 @@ class SudokuSolver {
  }
 
   validate() {
-    
+
+    let validationResult = {}
+
+    let fl = this.checkRowPlacement();
+    let col = this.checkColPlacement();
+    let region = this.checkRegionPlacement();
+
+    let collection = [
+      {area: fl, name: 'row'},
+      {area: col, name: 'column'},
+      {area: region, name: 'region'}
+    ] ;
+
+      if(fl && col && region){
+        validationResult.validatedTrue = {"valid": true};
+      }else{
+        let conflict = [];
+
+        for(let elem of collection){
+          if(!elem.area) conflict.push( elem.name )
+        }
+
+        validationResult.validatedTrue = { "valid": false, "conflict": conflict };
+      }
+
+        validationResult.fields = !this.validFields  ? { error: 'Required field(s) missing' } : true;
+
+        validationResult.sizePuzzle = !this.puzzleString.length == 81 ? { error: 'Expected puzzle to be 81 characters long' } : true;
+        validationResult.checkPuzzle = !this.puzzleString.split('').every(item => item > 0 && item < 10 || item == '.') ? { error: 'Invalid characters in puzzle' } : true;
+
+
+
+    validationResult.value = !(this.value > 0 && this.value < 10) ? { error: 'Invalid value' } : true;
+    validationResult.coordinate = !/^[A-I]$/.test(this.row) || !/^[1-9]$/.test(this.column) ? { error: 'Invalid coordinate'} : true;
+
+    console.log(validationResult, 'validResult')
+    return validationResult;
   }
 
   checkRowPlacement() {
@@ -60,7 +99,6 @@ class SudokuSolver {
 
   checkRegionPlacement() {
     let region = [];
-    //let temArrJ = [];
     let flag = true;
     let coordinateOfRegion = [this.objRows[this.row]['rowRegion'],this.objCols[this.column-1]['colRegion']];
     
@@ -69,71 +107,13 @@ class SudokuSolver {
       for(let otherKey in this.objCols){
         if(this.objRows[key]['rowRegion'] == this.objRows[this.row]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[this.column-1]['colRegion']){
           let positionReg = this.puzzleString[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
-          //console.log(this.objRows[key]['nn'], 'nn')
-          //console.log(otherKey, 'otherKey')
           region.push(positionReg)
         }
       } 
     }
 
-    //console.log(coordinateOfRegion, 'coord')
-    console.log(region.includes(this.value), 'incl')
-    console.log(region, 'region')
     return !region.includes(this.value)
      
-
-
-/*
-    for(let j = 0, i = 0; j < this.puzzleString.length; j+=27, i++){
-          temArrJ[i] = [];
-      for(let p = j; p < j+27; p++){
-          temArrJ[i].push(this.puzzleString[p])
-      }
-      
-    }
-    //console.log(temArrJ, 'temarj')
-    let tempArrP = []
-    for(let s = 0; s < temArrJ.length; s++){
-      tempArrP[s] = []
-      for(let c = 0, temp=0; c < temArrJ[s].length; c+=3, temp++){
-         tempArrP[s][temp] = [] 
-        for(let p = c; p < c + 3; p++){
-         tempArrP[s][temp].push(temArrJ[s][p]) 
-        }
-      }
-    }
-
-    for(let i = 0; i < tempArrP.length; i++){
-      region[i] = [[],[],[]];
-      for(let m = 0; m < tempArrP[i].length; m++){
-
-        if(m % 3 == 0){
-          region[i][0].push(tempArrP[i][m])
-        }else if(m % 3 == 1){
-          region[i][1].push(tempArrP[i][m])
-        }else if(m % 3 == 2){
-          region[i][2].push(tempArrP[i][m])
-        }    }
-
-      }
-
-      
-    for(let i = 0; i < region.length; i++){
-      for(let j = 0; j < region[i].length; j++){
-        region[i][j] = region[i][j].reduce((total, amount) => {
-      return total.concat(amount);
-        }, []);
-      }
-    }
-
-    region = region.reduce((total, amount) => {
-      return total.concat(amount);
-  }, []);
-
-
-    //console.log(region, 'region')
-     return region
-     */
   }
 
   solve(puzzleString) {
