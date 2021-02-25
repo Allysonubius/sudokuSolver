@@ -1,14 +1,7 @@
 class SudokuSolver {
   constructor(objBody){
-    let regex = objBody ? objBody.coordinate.match(/^([A-I])([1-9])$/) : '';
-    this.row = regex ? regex[1] : '';
-    this.column = regex ? regex[2] : '';
-    this.puzzleString = objBody && objBody.puzzle ? objBody.puzzle : '';
-    this.arrPuzzle = String( this.puzzleString ).split('')
-    this.value = objBody && objBody.value ? objBody.value : '';
-    this.validFields = objBody && objBody.puzzle &&  objBody.coordinate  && objBody.value;
 
-    this.objRows = {
+        this.objRows = {
       'A':{ nn:0, pos: [0, 8], rowRegion: 1} , 
       'B': { nn: 1, pos: [9, 17] , rowRegion: 1 }, 
       'C': { nn: 2, pos: [18, 26], rowRegion: 1  }, 
@@ -34,13 +27,28 @@ class SudokuSolver {
 
  }
 
-  validate() {
+  validate(objBody) {
 
-    let validationResult = {}
+    let row, column, fl, col, region;
 
-    let fl = this.checkRowPlacement();
-    let col = this.checkColPlacement();
-    let region = this.checkRegionPlacement();
+    let puzzleString = objBody.puzzle;
+    let value = objBody.value;
+    let validFields = objBody && objBody.puzzle &&  objBody.coordinate  && objBody.value;
+
+    let validationResult = {row, column};
+
+    if(/^([A-I])([1-9])$/.test(objBody.coordinate)){
+      let regex = objBody.coordinate.match(/^([A-I])([1-9])$/);
+      row = regex[1];
+      column = regex[2];
+      fl = this.checkRowPlacement(puzzleString, row, column, value);
+      col = this.checkColPlacement(puzzleString, row, column, value);
+      region = this.checkRegionPlacement(puzzleString, row, column, value);
+      validationResult.coordinateFail = false; 
+    }else{
+      validationResult.coordinateFail = { error: 'Invalid coordinate'};
+    }
+
 
     let collection = [
       {area: fl, name: 'row'},
@@ -49,7 +57,8 @@ class SudokuSolver {
     ] ;
 
       if(fl && col && region){
-        validationResult.validatedTrue = {"valid": true};
+        validationResult.isValidated= {"valid": true};
+
       }else{
         let conflict = [];
 
@@ -57,27 +66,24 @@ class SudokuSolver {
           if(!elem.area) conflict.push( elem.name )
         }
 
-        validationResult.validatedTrue = { "valid": false, "conflict": conflict };
+        validationResult.isValidated = { "valid": false, "conflict": conflict };
       }
 
-        validationResult.fields = !this.validFields  ? { error: 'Required field(s) missing' } : true;
+        validationResult.fieldsFail = !validFields  ? { error: 'Required field(s) missing' } : false;
 
-        validationResult.sizePuzzle = !this.puzzleString.length == 81 ? { error: 'Expected puzzle to be 81 characters long' } : true;
-        validationResult.checkPuzzle = !this.puzzleString.split('').every(item => item > 0 && item < 10 || item == '.') ? { error: 'Invalid characters in puzzle' } : true;
+        validationResult.sizePuzzleFail = !puzzleString.length == 81 ? { error: 'Expected puzzle to be 81 characters long' } : false;
 
+        validationResult.checkPuzzleFail = !puzzleString.split('').every(item => item > 0 && item < 10 || item == '.') ? { error: 'Invalid characters in puzzle' } : false;
 
+        validationResult.valueFail = !(value > 0 && value < 10) ? { error: 'Invalid value' } : false;
 
-    validationResult.value = !(this.value > 0 && this.value < 10) ? { error: 'Invalid value' } : true;
-    validationResult.coordinate = !/^[A-I]$/.test(this.row) || !/^[1-9]$/.test(this.column) ? { error: 'Invalid coordinate'} : true;
-
-    console.log(validationResult, 'validResult')
     return validationResult;
   }
 
-  checkRowPlacement() {
+  checkRowPlacement(puzzleString, row, column, value) {
     let flag = true;
-      for(let i = this.objRows[this.row]['pos'][0]; i <= this.objRows[this.row]['pos'][1]; i++){
-        if(this.puzzleString[i] == this.value){
+      for(let i = this.objRows[row]['pos'][0]; i <= this.objRows[row]['pos'][1]; i++){
+        if(puzzleString[i] == value){
             flag = false;
           break
         }
@@ -85,11 +91,11 @@ class SudokuSolver {
       return flag
   }
 
-  checkColPlacement() {
+  checkColPlacement(puzzleString, row, column, value) {
     let flag = true;
 
-    for(let j = this.column - 1; j < this.puzzleString.length; j += 9){
-        if(this.puzzleString[j] == this.value){
+    for(let j = column - 1; j < puzzleString.length; j += 9){
+        if(puzzleString[j] == value){
             flag = false;
           break
         }
@@ -97,27 +103,32 @@ class SudokuSolver {
     return flag
   }
 
-  checkRegionPlacement() {
+  checkRegionPlacement(puzzleString, row, column, value) {
     let region = [];
     let flag = true;
-    let coordinateOfRegion = [this.objRows[this.row]['rowRegion'],this.objCols[this.column-1]['colRegion']];
+    let coordinateOfRegion = [this.objRows[row]['rowRegion'],this.objCols[column-1]['colRegion']];
     
     
     for(let key in this.objRows){
       for(let otherKey in this.objCols){
-        if(this.objRows[key]['rowRegion'] == this.objRows[this.row]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[this.column-1]['colRegion']){
-          let positionReg = this.puzzleString[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
+        if(this.objRows[key]['rowRegion'] == this.objRows[row]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[column-1]['colRegion']){
+          let positionReg = puzzleString[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
           region.push(positionReg)
         }
       } 
     }
 
-    return !region.includes(this.value)
+    return !region.includes(value)
      
   }
 
   solve(puzzleString) {
-    
+   let tempArr = puzzleString.split('');
+    for(let i = 0; i < tempArr.length; i++){
+      if(tempArr[i] == '.'){
+
+      }
+    }
   }
 }
 

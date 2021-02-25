@@ -20,38 +20,34 @@ module.exports = function (app) {
 
 */
 
-      let solver = new SudokuSolver(req.body);
 
-      let fl = solver.checkRowPlacement();
-      let col = solver.checkColPlacement();
-      let region = solver.checkRegionPlacement();
-      let validate = solver.validate();
+      let solver = new SudokuSolver();
+
+      let validate = solver.validate(req.body);
 
       console.log(req.body, 'req.body')
-      console.log(fl, 'fl')
-      console.log(col, 'col')
-      console.log(region, 'reg')
+      console.log(validate, 'validate')
 
-      if(validate.fields){
-        if(validate.sizePuzzle){
-            if(validate.checkPuzzle){
-              if(validate.coordinate){
-                if(validate.value){
-                  res.json(validate.validatedTrue);
+      if(!validate.fieldsFail){
+        if(!validate.sizePuzzleFail){
+            if(!validate.checkPuzzleFail){
+              if(!validate.coordinateFail){
+                if(!validate.valueFail){
+                  res.json(validate.isValidated);
                 }else{
-                  res.json(validate.value);
+                  res.json(validate.valueFail);
                 }
               }else{
-                res.json(validate.coordinate);
+                res.json(validate.coordinateFail);
               }
             }else{
-              res.json(validate.checkPuzzle);
+              res.json(validate.checkPuzzleFail);
             }
         }else{
-          res.json(validate.sizePuzzle);
+          res.json(validate.sizePuzzleFail);
         }
       }else{
-        res.json(validate.fields);
+        res.json(validate.fieldsFail);
       }
 
     });
