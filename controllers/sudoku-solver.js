@@ -36,7 +36,7 @@ class SudokuSolver {
     let validationResult = {row, column};
     
 
-    let  shortErr = !validFields  ? 'Required field(s) missing'  : !( /^([A-I])([1-9])$/.test(objBody.coordinate)  )? 'Invalid coorditnate' :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(objBody.value > 0 && objBody.value < 10) ? 'Invalid value': false ; 
+    let  shortErr = !validFields  ? 'Required field(s) missing'  : !( /^([A-I])([1-9])$/.test(objBody.coordinate)  )? 'Invalid coordinate' :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(objBody.value > 0 && objBody.value < 10) ? 'Invalid value': false ; 
  
     if(/^([A-I])([1-9])$/.test(objBody.coordinate)){
 
@@ -104,9 +104,6 @@ class SudokuSolver {
 
   checkRegionPlacement(puzzleString, row, column, value) {
     let region = [];
-    //let flag = true;
-    //let coordinateOfRegion = [this.objRows[row]['rowRegion'],this.objCols[column-1]['colRegion']];
-    
     
     for(let key in this.objRows){
       for(let otherKey in this.objCols){
@@ -118,52 +115,6 @@ class SudokuSolver {
     }
     return !region.includes(String( value ))
   }
-/*
-  searchAreas(puzzleString, addrTd){
-    let column = ( addrTd % 9 ) + 1;
-    let rowNum = addrTd  / 9;
-    rowNum = Math.floor(rowNum);
-    let region = [];
-    let letter;
-
-    for(let keyLetter in this.objRows){
-      if(this.objRows[keyLetter]['nn'] == rowNum){
-        letter = keyLetter;
-      }
-    }
-
-    for(let key in this.objRows){
-      for(let otherKey in this.objCols){
-
-        if(this.objRows[key]['rowRegion'] == this.objRows[letter]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[column-1]['colRegion']){
-          let positionReg = puzzleString[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
-          region.push(positionReg)
-          }
-        } 
-      }
-
-    return { col: column, row:rowNum, region }
-    }
-
-
-
-  cleanCoordinates(puzzleString, candidates){
-
-    for(let keyCandidates in candidates){
-      for(let i = 0; i < candidates[keyCandidates].length; i++){
-        let searchResult = searchAreas(puzzleString, )
-      }
-    }
-
-
-    for(let key in this.objRows){
-        let fl = this.checkRowPlacement(puzzleString, key, column, value);
-        let col = this.checkColPlacement(puzzleString, key, column, value);
-        let region = searchResult.region; 
-        return fl && col && region;
-        }
-      }
-      */
 
 getCandidates(puzzleString){
     let candidates = {};
@@ -226,12 +177,12 @@ getCandidates(puzzleString){
   solve(objBody) {
     let answer = {};
     let puzzleString = objBody.puzzle;
+    puzzleString = this.repeatFuncCleaning(puzzleString) ;
+    let puzzleArr = puzzleString.split('') ;
     
-    let err = !objBody.puzzle  ? 'Required field(s) missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : false ; 
+    let err = !objBody.puzzle  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : puzzleArr.includes('.') ?  'Puzzle cannot be solved' : false ; 
 
     if(!err){
-      puzzleString = this.repeatFuncCleaning(puzzleString) ;
-      let puzzleArr = puzzleString.split('') ;
       answer.solution = puzzleArr;
     }else{
       answer.error = err
