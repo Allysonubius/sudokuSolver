@@ -31,24 +31,25 @@ class SudokuSolver {
 
     let row, column, fl, col, region;
 
-    let puzzleString = objBody.puzzle;
-    let value = objBody.value;
     let validFields = objBody && objBody.puzzle &&  objBody.coordinate  && objBody.value;
 
     let validationResult = {row, column};
+    
 
+    let  shortErr = !validFields  ? 'Required field(s) missing'  : !( /^([A-I])([1-9])$/.test(objBody.coordinate)  )? 'Invalid coorditnate' :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(objBody.value > 0 && objBody.value < 10) ? 'Invalid value': false ; 
+ 
     if(/^([A-I])([1-9])$/.test(objBody.coordinate)){
+
       let regex = objBody.coordinate.match(/^([A-I])([1-9])$/);
       row = regex[1];
       column = regex[2];
-      fl = this.checkRowPlacement(puzzleString, row, column, value);
-      col = this.checkColPlacement(puzzleString, row, column, value);
-      region = this.checkRegionPlacement(puzzleString, row, column, value);
-      validationResult.coordinateFail = false; 
-    }else{
-      validationResult.coordinateFail = { error: 'Invalid coordinate'};
-    }
 
+    }
+    
+    if(!shortErr){
+      fl = this.checkRowPlacement(objBody.puzzle, row, column, objBody.value);
+      col = this.checkColPlacement(objBody.puzzle, row, column, objBody.value);
+      region = this.checkRegionPlacement(objBody.puzzle, row, column, objBody.value);
 
     let collection = [
       {area: fl, name: 'row'},
@@ -56,31 +57,26 @@ class SudokuSolver {
       {area: region, name: 'region'}
     ] ;
 
-      if(fl && col && region){
-        validationResult.isValidated= {"valid": true};
-
+     if(fl && col && region){
+        validationResult.answer= {"valid": true};
       }else{
         let conflict = [];
-
         for(let elem of collection){
           if(!elem.area) conflict.push( elem.name )
         }
+      validationResult.answer = { "valid": false, "conflict": conflict };
 
-        validationResult.isValidated = { "valid": false, "conflict": conflict };
       }
 
-        validationResult.fieldsFail = !validFields  ? { error: 'Required field(s) missing' } : false;
-
-        validationResult.sizePuzzleFail = !puzzleString.length == 81 ? { error: 'Expected puzzle to be 81 characters long' } : false;
-
-        validationResult.checkPuzzleFail = !puzzleString.split('').every(item => item > 0 && item < 10 || item == '.') ? { error: 'Invalid characters in puzzle' } : false;
-
-        validationResult.valueFail = !(value > 0 && value < 10) ? { error: 'Invalid value' } : false;
-
+    }else{
+      validationResult.error = shortErr;
+    }
     return validationResult;
   }
 
-  checkRowPlacement(puzzleString, row, column, value) {
+  
+
+  checkRowPlacement(puzzleString, row, column, value){
     let flag = true;
       for(let i = this.objRows[row]['pos'][0]; i <= this.objRows[row]['pos'][1]; i++){
         if(puzzleString[i] == value){
@@ -90,6 +86,9 @@ class SudokuSolver {
       }
       return flag
   }
+
+
+
 
   checkColPlacement(puzzleString, row, column, value) {
     let flag = true;
@@ -105,8 +104,8 @@ class SudokuSolver {
 
   checkRegionPlacement(puzzleString, row, column, value) {
     let region = [];
-    let flag = true;
-    let coordinateOfRegion = [this.objRows[row]['rowRegion'],this.objCols[column-1]['colRegion']];
+    //let flag = true;
+    //let coordinateOfRegion = [this.objRows[row]['rowRegion'],this.objCols[column-1]['colRegion']];
     
     
     for(let key in this.objRows){
@@ -117,11 +116,9 @@ class SudokuSolver {
         }
       } 
     }
-
     return !region.includes(String( value ))
-     
   }
-
+/*
   searchAreas(puzzleString, addrTd){
     let column = ( addrTd % 9 ) + 1;
     let rowNum = addrTd  / 9;
@@ -166,6 +163,7 @@ class SudokuSolver {
         return fl && col && region;
         }
       }
+      */
 
 getCandidates(puzzleString){
     let candidates = {};
@@ -198,39 +196,48 @@ getCandidates(puzzleString){
  
 
   repeatFuncCleaning(puzzleStr){
-      let candidates = this.getCandidates(puzzleStr);
-      let puzzleArr = puzzleStr.split('');
+    let candidates = this.getCandidates(puzzleStr);
+    let puzzleArr = puzzleStr.split('');
+    let flag = true;
 
-      let flag = true;
+      for(let key in candidates){
 
-        for(let key in candidates){
-
-          if(candidates[key].length == 1){
-            puzzleArr[key] = candidates[key][0];
-            flag = false;
-          }
+        if(candidates[key].length == 1){
+          puzzleArr[key] = candidates[key][0];
+          flag = false;
         }
-
-      puzzleStr = puzzleArr.join('')
-
-      if(!flag){
-       puzzleStr = this.repeatFuncCleaning(puzzleStr)
-        return puzzleStr;
-      }else{
-        console.log(puzzleStr, 'puzzle2')
-        return puzzleStr; 
       }
 
+    puzzleStr = puzzleArr.join('')
+
+    if(!flag){
+
+      puzzleStr = this.repeatFuncCleaning(puzzleStr)
+      return puzzleStr;
+
+    }else{
+
+      return puzzleStr; 
+
+    }
+  }
+
+
+  solve(objBody) {
+    let answer = {};
+    let puzzleString = objBody.puzzle;
+    
+    let err = !objBody.puzzle  ? 'Required field(s) missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : false ; 
+
+    if(!err){
+      puzzleString = this.repeatFuncCleaning(puzzleString) ;
+      let puzzleArr = puzzleString.split('') ;
+      answer.solution = puzzleArr;
+    }else{
+      answer.error = err
     }
 
-
-  solve(puzzleString) {
-    puzzleString = this.repeatFuncCleaning(puzzleString) ;
-    let puzzleArr = puzzleString.split('') ;
-
-   return puzzleArr 
-
-
+   return answer 
   }
 
 }

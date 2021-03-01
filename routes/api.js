@@ -22,6 +22,12 @@ let solver = new SudokuSolver();
       console.log(req.body, 'req.body')
       console.log(validate, 'validate')
 
+      if(validate.error){
+        res.json({error: validate.error})
+      }else{
+        res.json(validate.answer)
+      }
+      /*
       if(!validate.fieldsFail){
         if(!validate.sizePuzzleFail){
             if(!validate.checkPuzzleFail){
@@ -44,12 +50,12 @@ let solver = new SudokuSolver();
         res.json(validate.fieldsFail);
       }
 
+*/
     });
     
   app.route('/api/solve')
     .post((req, res) => {
-      let solve = {};
-      solve.solution= solver.solve(req.body.puzzle);
+      let solve = solver.solve(req.body);
       console.log(solve, 'solve')
       res.json(solve)
 
