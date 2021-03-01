@@ -1,16 +1,11 @@
 'use strict';
 
 const SudokuSolver = require('../controllers/sudoku-solver.js');
-let solver = new SudokuSolver();
-
-function puzzleValidation(puzzle){
-  for(let i = 0; i < puzzle.length; i++){
-    
-  }
-}
 
 module.exports = function (app) {
   
+let solver = new SudokuSolver();
+
   app.route('/api/check')
     .post((req, res) => {
       /*
@@ -21,7 +16,6 @@ module.exports = function (app) {
 */
 
 
-      let solver = new SudokuSolver();
 
       let validate = solver.validate(req.body);
 
@@ -54,6 +48,10 @@ module.exports = function (app) {
     
   app.route('/api/solve')
     .post((req, res) => {
+      let solve = {};
+      solve.solution= solver.solve(req.body.puzzle);
+      console.log(solve, 'solve')
+      //res.json(solve)
 
     });
 };

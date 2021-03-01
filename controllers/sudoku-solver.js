@@ -1,7 +1,7 @@
 class SudokuSolver {
   constructor(objBody){
 
-        this.objRows = {
+    this.objRows = {
       'A':{ nn:0, pos: [0, 8], rowRegion: 1} , 
       'B': { nn: 1, pos: [9, 17] , rowRegion: 1 }, 
       'C': { nn: 2, pos: [18, 26], rowRegion: 1  }, 
@@ -118,18 +118,175 @@ class SudokuSolver {
       } 
     }
 
-    return !region.includes(value)
+    return !region.includes(String( value ))
      
   }
 
+  searchAreas(puzzleString, addrTd){
+    let column = ( addrTd % 9 ) + 1;
+    let rowNum = addrTd  / 9;
+    rowNum = Math.floor(rowNum);
+    let region = [];
+    let letter;
+
+    for(let keyLetter in this.objRows){
+      if(this.objRows[keyLetter]['nn'] == rowNum){
+        letter = keyLetter;
+      }
+    }
+
+    for(let key in this.objRows){
+      for(let otherKey in this.objCols){
+
+        if(this.objRows[key]['rowRegion'] == this.objRows[letter]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[column-1]['colRegion']){
+          let positionReg = puzzleString[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
+          region.push(positionReg)
+          }
+        } 
+      }
+
+    return { col: column, row:rowNum, region }
+    }
+
+
+
+  cleanCoordinates(puzzleString, candidates){
+
+    for(let keyCandidates in candidates){
+      for(let i = 0; i < candidates[keyCandidates].length; i++){
+        let searchResult = searchAreas(puzzleString, )
+      }
+    }
+
+
+    for(let key in this.objRows){
+        let fl = this.checkRowPlacement(puzzleString, key, column, value);
+        let col = this.checkColPlacement(puzzleString, key, column, value);
+        let region = searchResult.region; 
+        return fl && col && region;
+        }
+      }
+
+getCandidates(puzzleString){
+    let candidates = {};
+
+    for(let i = 0; i < puzzleString.length; i++){
+      if(puzzleString[i] === '.'){
+        candidates[i] = [];
+        let column = ( i % 9 ) + 1;
+        let row = i / 9;
+        row = Math.floor(row);
+
+        for(let key in this.objRows){
+          if(this.objRows[key]['nn'] == row){
+            for(let j = 1; j <= 9; j++){
+      let fl = this.checkRowPlacement(puzzleString, key, column, j);
+      let col = this.checkColPlacement(puzzleString, key, column, j);
+      let region = this.checkRegionPlacement(puzzleString, key, column, j);
+      let putNum = fl && col && region;
+              if( fl && col && region){
+                candidates[i].push(j);
+              }
+            }
+          }
+        }
+      }
+    }
+  return candidates
+}
+
+ 
+
+  repeatFuncCleaning(puzzleStr){
+      let candidates = this.getCandidates(puzzleStr);
+      console.log(candidates, 'candi')
+      console.log(puzzleStr, 'puzzle')
+      let puzzleArr = puzzleStr.split('');
+
+   //   if(!puzzleArr.includes('.'))return puzzleStr
+
+      let flag = true;
+
+        for(let key in candidates){
+
+          if(candidates[key].length == 1){
+            puzzleArr[key] = candidates[key][0];
+            flag = false;
+          }
+        }
+
+      let newStr = puzzleArr.join('')
+
+      if(!flag){
+        this.repeatFuncCleaning(newStr)
+      }else{
+        console.log(newStr, 'puzzle2')
+        return newStr; 
+      }
+
+    }
+
+
   solve(puzzleString) {
+    /*
    let tempArr = puzzleString.split('');
-    for(let i = 0; i < tempArr.length; i++){
-      if(tempArr[i] == '.'){
+    console.log(tempArr, 'before')
+    for(let i = 0; i < puzzleString.length; i++){
+        //console.log(tempArr[i], 'tempI')
+      if(tempArr[i] === '.'){
+        let column = ( i % 9 ) + 1;
+        let row = i / 9;
+        row = Math.floor(row);
+        //console.log(i, 'i')
+        //console.log(column, 'col')
+        //console.log(row, 'row')
+        let coord;
+
+        for(let key in this.objRows){
+          if(this.objRows[key]['nn'] == row){
+            for(let j = 1; j <= 9; j++){
+              //console.log(key, 'key')
+              //console.log(j, 'j')
+      let fl = this.checkRowPlacement(puzzleString, key, column, j);
+      let col = this.checkColPlacement(puzzleString, key, column, j);
+      let region = this.checkRegionPlacement(puzzleString, key, column, j);
+      let putNum = fl && col && region;
+              if( fl && col && region){
+        //console.log(fl, 'fl')
+        //console.log(col, 'col')
+        //console.log(region, 'region')
+                console.log(j, 'j')
+                console.log(i, 'i')
+                console.log(tempArr[i], 'tempi')
+                tempArr[i] = j;
+                puzzleString = tempArr.join('')
+                break
+              }
+            }
+          }
+        }
+      }
+      if(tempArr.includes('.')){
 
       }
     }
+
+    return tempArr
+    */
+
+   
+
+    console.log(puzzleString, 'puzzle0')
+   puzzleString = this.repeatFuncCleaning(puzzleString) ;
+
+    console.log(puzzleString, 'puzzle1')
+    console.log(typeof puzzleString)
+
+   return puzzleString 
+
+
   }
+
 }
 
 module.exports = SudokuSolver;
