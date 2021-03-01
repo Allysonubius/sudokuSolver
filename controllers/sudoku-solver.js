@@ -199,11 +199,7 @@ getCandidates(puzzleString){
 
   repeatFuncCleaning(puzzleStr){
       let candidates = this.getCandidates(puzzleStr);
-      console.log(candidates, 'candi')
-      console.log(puzzleStr, 'puzzle')
       let puzzleArr = puzzleStr.split('');
-
-   //   if(!puzzleArr.includes('.'))return puzzleStr
 
       let flag = true;
 
@@ -215,74 +211,24 @@ getCandidates(puzzleString){
           }
         }
 
-      let newStr = puzzleArr.join('')
+      puzzleStr = puzzleArr.join('')
 
       if(!flag){
-        this.repeatFuncCleaning(newStr)
+       puzzleStr = this.repeatFuncCleaning(puzzleStr)
+        return puzzleStr;
       }else{
-        console.log(newStr, 'puzzle2')
-        return newStr; 
+        console.log(puzzleStr, 'puzzle2')
+        return puzzleStr; 
       }
 
     }
 
 
   solve(puzzleString) {
-    /*
-   let tempArr = puzzleString.split('');
-    console.log(tempArr, 'before')
-    for(let i = 0; i < puzzleString.length; i++){
-        //console.log(tempArr[i], 'tempI')
-      if(tempArr[i] === '.'){
-        let column = ( i % 9 ) + 1;
-        let row = i / 9;
-        row = Math.floor(row);
-        //console.log(i, 'i')
-        //console.log(column, 'col')
-        //console.log(row, 'row')
-        let coord;
+    puzzleString = this.repeatFuncCleaning(puzzleString) ;
+    let puzzleArr = puzzleString.split('') ;
 
-        for(let key in this.objRows){
-          if(this.objRows[key]['nn'] == row){
-            for(let j = 1; j <= 9; j++){
-              //console.log(key, 'key')
-              //console.log(j, 'j')
-      let fl = this.checkRowPlacement(puzzleString, key, column, j);
-      let col = this.checkColPlacement(puzzleString, key, column, j);
-      let region = this.checkRegionPlacement(puzzleString, key, column, j);
-      let putNum = fl && col && region;
-              if( fl && col && region){
-        //console.log(fl, 'fl')
-        //console.log(col, 'col')
-        //console.log(region, 'region')
-                console.log(j, 'j')
-                console.log(i, 'i')
-                console.log(tempArr[i], 'tempi')
-                tempArr[i] = j;
-                puzzleString = tempArr.join('')
-                break
-              }
-            }
-          }
-        }
-      }
-      if(tempArr.includes('.')){
-
-      }
-    }
-
-    return tempArr
-    */
-
-   
-
-    console.log(puzzleString, 'puzzle0')
-   puzzleString = this.repeatFuncCleaning(puzzleString) ;
-
-    console.log(puzzleString, 'puzzle1')
-    console.log(typeof puzzleString)
-
-   return puzzleString 
+   return puzzleArr 
 
 
   }

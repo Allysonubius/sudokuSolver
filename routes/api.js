@@ -51,7 +51,7 @@ let solver = new SudokuSolver();
       let solve = {};
       solve.solution= solver.solve(req.body.puzzle);
       console.log(solve, 'solve')
-      //res.json(solve)
+      res.json(solve)
 
     });
 };
