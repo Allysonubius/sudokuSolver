@@ -71,6 +71,7 @@ class SudokuSolver {
     }else{
       validationResult.error = shortErr;
     }
+    console.log(validationResult, 'valRes')
     return validationResult;
   }
 
@@ -176,11 +177,14 @@ getCandidates(puzzleString){
 
   solve(objBody) {
     let answer = {};
-    let puzzleString = objBody.puzzle;
-    puzzleString = this.repeatFuncCleaning(puzzleString) ;
-    let puzzleArr = puzzleString.split('') ;
+    let puzzleString, puzzleArr;
+    if(objBody.hasOwnProperty('puzzle')){
+      puzzleString = objBody.puzzle;
+      puzzleString = this.repeatFuncCleaning(puzzleString) ;
+      puzzleArr = puzzleString.split('') ;
+    }
     
-    let err = !objBody.puzzle  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : puzzleArr.includes('.') ?  'Puzzle cannot be solved' : false ; 
+    let err = !objBody.hasOwnProperty('puzzle')  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : puzzleArr.includes('.') ?  'Puzzle cannot be solved' : false ; 
 
     if(!err){
       answer.solution = puzzleArr;
