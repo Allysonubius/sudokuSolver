@@ -177,21 +177,21 @@ getCandidates(puzzleString){
 
   solve(objBody) {
     let answer = {};
-    let puzzleString, puzzleArr;
+    let puzzleString;
     if(objBody.hasOwnProperty('puzzle')){
       puzzleString = objBody.puzzle;
       puzzleString = this.repeatFuncCleaning(puzzleString) ;
-      puzzleArr = puzzleString.split('') ;
     }
     
-    let err = !objBody.hasOwnProperty('puzzle')  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : puzzleArr.includes('.') ?  'Puzzle cannot be solved' : false ; 
+    let err = !objBody.hasOwnProperty('puzzle')  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(puzzleString.indexOf('.') == -1)?  'Puzzle cannot be solved' : false ; 
 
     if(!err){
-      answer.solution = puzzleArr;
+      answer.solution = puzzleString;
     }else{
       answer.error = err
     }
 
+      console.log(puzzleString, 'str')
    return answer 
   }
 

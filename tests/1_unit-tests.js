@@ -112,9 +112,8 @@ suite('UnitTests', () => {
     test('full answer (solution)', (done) => {
       puzzleStrings.puzzlesAndSolutions.forEach(item => {
         let objBody = {puzzle: item[0]}
-        let arrSolution = item[1].split('');
       
-        assert.sameOrderedMembers(solver.solve(objBody).solution, arrSolution)
+        assert.equal(solver.solve(objBody).solution, item[1])
       })
       done();
     })
@@ -142,7 +141,7 @@ suite('UnitTests', () => {
     
 
     test('Puzzle cannot be solved', (done) => {
-        let objBody = { puzzle: '.......1.85.4....2432......1...69.83.9.....6.62.71...9......1945....4.37.4.3..6..', }
+        let objBody = { puzzle: '..........5.4....2432......1...69.83.9.....6.62.71...9......1945....4.37.4.3..6..', }
 
         assert.equal(solver.solve(objBody).error, 'Puzzle cannot be solved'   )
       done();
