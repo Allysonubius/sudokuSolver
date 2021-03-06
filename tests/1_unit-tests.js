@@ -106,6 +106,19 @@ suite('UnitTests', () => {
 
   })   
 
+  suite('check()', () => {
+ 
+    test('full answer (solution)', (done) => {
+      let puzzle = '9.9..5.1.85.4....2432......1...69.83.9.....6.62.71...9......1945....4.37.4.3..6..';
+      let puzzle1 = '1.5..2.84..63.12.7.2..5.....9..1....8.2.3674.3.7.2..9.47...8..1..16....926914.37.';
+      
+        assert.equal(solver.checkCollections(puzzle), false)
+        assert.equal(solver.checkCollections(puzzle1), true)
+
+      done();
+    })
+
+  })
   
   suite('solve()', () => {
    
@@ -146,6 +159,15 @@ suite('UnitTests', () => {
         assert.equal(solver.solve(objBody).error, 'Puzzle cannot be solved'   )
       done();
     })
-   
+ 
+    test('Puzzle cannot be solved', (done) => {
+        let objBody = {
+          puzzle: '9.9..5.1.85.4....2432......1...69.83.9.....6.62.71...9......1945....4.37.4.3..6..',
+        }
+
+        assert.equal(solver.solve(objBody).error, 'Puzzle cannot be solved'   )
+      done();
+    })
+  
   })   
 });
