@@ -57,7 +57,7 @@ class SudokuSolver {
       {area: region, name: 'region'}
     ] ;
 
-     if(fl && col && region){
+     if(fl && col && region || this.ifContainsTheSame(objBody.puzzle, row, column, objBody.value)){
         validationResult.answer= {"valid": true};
       }else{
         let conflict = [];
@@ -76,6 +76,13 @@ class SudokuSolver {
   }
 
   
+  ifContainsTheSame(puzzle, row, col, value){
+    let rowNum = this.objRows[row]['nn'] ;
+    let addrTd =  ( ( rowNum ) * 9 + Number( col )  ) - 1;
+    console.log(addrTd, 'addrTd', rowNum, 'rowNumb', col, 'col')
+    return puzzle[addrTd] == value
+  }
+
 
   checkRowPlacement(puzzleString, row, column, value){
     let flag = true;
@@ -204,60 +211,6 @@ checkCollections(puzzle){
   return flag;
   }
 
-
-
-/*
-  cleanCoordinates(puzzleString, candidates){
-    for(let keyCandidates in candidates){
-      for(let i = 0; i < candidates[keyCandidates].length; i++){
-        let searchResult = searchAreas(puzzleString, )
-      }
-    }
-    for(let key in this.objRows){
-        let fl = this.checkRowPlacement(puzzleString, key, column, value);
-        let col = this.checkColPlacement(puzzleString, key, column, value);
-        let region = searchResult.region;
-        return fl && col && region;
-        }
-      }
-
-
-checkSolvingPuzzle(puzzle){
-  
-  let flag = true;
-
-  for(let i = 0; i < puzzle.length; i++){
-      let column = ( i % 9 ) + 1;
-      let row = i / 9;
-      row = Math.floor(row);
-
-      for(let key in this.objRows){
-        if(this.objRows[key]['nn'] == row){
-
-          for(let j = 0; j < 81; j++){
-
-      let fl = this.checkRowPlacement(puzzle, key, column, puzzle[j]);
-      let col = this.checkColPlacement(puzzle, key, column, puzzle[j]);
-      let region = this.checkRegionPlacement(puzzle, key, column, puzzle[j]);
-    if(!(fl && col && region) && j!=i){
-     // console.log(puzzle[i], 'puz')
-     // console.log(fl, 'fl', row, column, i, j)
-     // console.log(col, 'col', row, column, i, j)
-     // console.log(region, 'region', row, column, i, j)
-      //console.log(j, 'j')
-      flag = false;
-      break
-    }
-          }
-    }
-    }
-  }
-  //console.log(flag)
-  return flag;
-  
-}
-
-*/
 
   repeatFuncCleaning(puzzleStr){
     let candidates = this.getCandidates(puzzleStr);
