@@ -23,184 +23,164 @@ class SudokuSolver {
       6: {colRegion: 3} ,
       7: {colRegion: 3} ,
       8: {colRegion: 3} 
-    }
+    };
 
  }
 
+
+
   validate(objBody) {
+    this.objBody = objBody;
+    this.puzzle = objBody.puzzle;
+    this.coordinate = objBody.coordinate;
+    this.value = String( objBody.value );
 
-    let row, column, fl, col, region;
 
-    let validFields = objBody && objBody.puzzle &&  objBody.coordinate  && objBody.value;
+    let validFields = this.puzzle &&  this.coordinate  && this.value;
 
-    let validationResult = {row, column};
-    
+    let validationResult = {row : this.rowNum, column: this.column};
 
-    let  shortErr = !validFields  ? 'Required field(s) missing'  : !( /^([A-I])([1-9])$/.test(objBody.coordinate)  )? 'Invalid coordinate' :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(objBody.value > 0 && objBody.value < 10) ? 'Invalid value': false ; 
- 
-    if(/^([A-I])([1-9])$/.test(objBody.coordinate)){
+    let  shortErr = !validFields  ? 'Required field(s) missing'  : !( /^([A-I])([1-9])$/.test(this.coordinate)  )? 'Invalid coordinate' :  !( this.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !this.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(objBody.value > 0 && this.value < 10) ? 'Invalid value': false ; 
 
-      let regex = objBody.coordinate.match(/^([A-I])([1-9])$/);
-      row = regex[1];
-      column = regex[2];
-
-    }
-    
     if(!shortErr){
-      fl = this.checkRowPlacement(objBody.puzzle, row, column, objBody.value);
-      col = this.checkColPlacement(objBody.puzzle, row, column, objBody.value);
-      region = this.checkRegionPlacement(objBody.puzzle, row, column, objBody.value);
 
-    let collection = [
-      {area: fl, name: 'row'},
-      {area: col, name: 'column'},
-      {area: region, name: 'region'}
-    ] ;
+      this.rowLetter =  this.coordinate.match(/^([A-I])([1-9])$/)[1];
+      this.column = this.coordinate.match(/^([A-I])([1-9])$/)[2];
+      this.rowNum =this.objRows[this.rowLetter]['nn'];
 
-     if(fl && col && region || this.ifContainsTheSame(objBody.puzzle, row, column, objBody.value)){
+      let collection = [
+        {area: this.getRowArr().includes(this.value) , name: 'row'},
+        {area: this.getColArr().includes(this.value), name: 'column'},
+        {area: this.getRegionArr().includes(this.value), name: 'region'}
+      ] ;
+
+     if(this.getCleanAreasBool() || this.ifContainsTheSame()){
         validationResult.answer= {"valid": true};
-      }else{
+     }else{
         let conflict = [];
-        for(let elem of collection){
-          if(!elem.area) conflict.push( elem.name )
-        }
-      validationResult.answer = { "valid": false, "conflict": conflict };
+          for(let elem of collection){
+            if(elem.area) conflict.push( elem.name )
+          }
 
+      validationResult.answer = { "valid": false, "conflict": conflict };
       }
 
     }else{
       validationResult.error = shortErr;
     }
-    console.log(validationResult, 'valRes')
+
     return validationResult;
   }
 
   
-  ifContainsTheSame(puzzle, row, col, value){
-    let rowNum = this.objRows[row]['nn'] ;
-    let addrTd =  ( ( rowNum ) * 9 + Number( col )  ) - 1;
-    console.log(addrTd, 'addrTd', rowNum, 'rowNumb', col, 'col')
-    return puzzle[addrTd] == value
+  ifContainsTheSame(){
+    let addrTd =  ( ( this.rowNum ) * 9 + Number(this.column)  ) - 1;
+    return this.puzzle[addrTd] == this.value;
   }
 
 
-  checkRowPlacement(puzzleString, row, column, value){
-    let flag = true;
-      for(let i = this.objRows[row]['pos'][0]; i <= this.objRows[row]['pos'][1]; i++){
-        if(puzzleString[i] == value){
-            flag = false;
-          break
-        }
-      }
-      return flag
+  getRowArr(){
+   let rowArea = this.objRows[this.rowLetter]['pos'];
+   let rowArr = []; 
+
+   for(let i = rowArea[0]; i <= rowArea[1] ; i++ ){
+     rowArr.push(this.puzzle[i]) ;
+   }
+    return rowArr;
   }
 
 
+  getColArr() {
+   let columnArr = [];
 
+     for(let j = this.column - 1; j < this.puzzle.length; j += 9){
+       columnArr.push(this.puzzle[j])
+    } 
 
-  checkColPlacement(puzzleString, row, column, value) {
-    let flag = true;
-
-    for(let j = column - 1; j < puzzleString.length; j += 9){
-        if(puzzleString[j] == value){
-            flag = false;
-          break
-        }
-      }
-    return flag
+    return columnArr;
   }
 
-  checkRegionPlacement(puzzleString, row, column, value) {
+  getRegionArr() {
     let region = [];
     
     for(let key in this.objRows){
       for(let otherKey in this.objCols){
-        if(this.objRows[key]['rowRegion'] == this.objRows[row]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[column-1]['colRegion']){
-          let positionReg = puzzleString[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
+        if(this.objRows[key]['rowRegion'] == this.objRows[this.rowLetter]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[this.column-1]['colRegion']){
+          let positionReg = this.puzzle[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
           region.push(positionReg)
         }
       } 
     }
-    return !region.includes(String( value ))
+    return region;
   }
 
-getCandidates(puzzleString){
-    let candidates = {};
+  getCleanAreasBool(){
+    this.value = String(this.value);
+    let rowArr = this.getRowArr();
+    let colArr = this.getColArr();
+    let regionArr = this.getRegionArr();
 
-    for(let i = 0; i < puzzleString.length; i++){
-      if(puzzleString[i] === '.'){
+      return  !( rowArr.includes(this.value) || colArr.includes(this.value) || regionArr.includes(this.value) ) ? true : false;
+  }
+
+getCandidates(){
+  let candidates = {};
+
+    for(let i = 0; i < this.puzzle.length; i++){
+      if(this.puzzle[i] === '.'){
         candidates[i] = [];
-        let column = ( i % 9 ) + 1;
-        let row = i / 9;
-        row = Math.floor(row);
+        this.column = ( i % 9 ) + 1;
+        let rowNumTemp = Math.floor( i / 9 );
 
         for(let key in this.objRows){
-          if(this.objRows[key]['nn'] == row){
+          if(this.objRows[key]['nn'] == rowNumTemp){
+            this.rowLetter = key;
+
             for(let j = 1; j <= 9; j++){
-      let fl = this.checkRowPlacement(puzzleString, key, column, j);
-      let col = this.checkColPlacement(puzzleString, key, column, j);
-      let region = this.checkRegionPlacement(puzzleString, key, column, j);
-      let putNum = fl && col && region;
-              if( fl && col && region){
-                candidates[i].push(j);
-              }
+              this.value = j;
+              
+               if(this.getCleanAreasBool()){
+                  candidates[i].push(j);
+               }
             }
           }
         }
       }
     }
-  return candidates
+  return candidates;
 }
 
- searchAreas(puzzleString, addrTd){
-    let column = ( addrTd % 9 ) + 1;
-    let rowNum = addrTd  / 9;
-    rowNum = Math.floor(rowNum);
+ searchAreas(addrTd){
+    this.column = ( addrTd % 9 ) + 1;
+    this.rowNum = Math.floor(addrTd  / 9);
     let region = [];
-    let letter;
-   let fullListElems = {rowEl: [], columnEl: [], regionEl: []};
    
     for(let keyLetter in this.objRows){
-      if(this.objRows[keyLetter]['nn'] == rowNum){
-        letter = keyLetter;
+      if(this.objRows[keyLetter]['nn'] == this.rowNum){
+        this.rowLetter = keyLetter;
       }
     }
 
-   let rowArea = this.objRows[letter]['pos'];
-
-   for(let i = rowArea[0]; i <= rowArea[1] ; i++ ){
-    fullListElems.rowEl.push(puzzleString[i]) ;
-   }
+    let fullListElems = {rowEl: this.getRowArr(), columnEl: this.getColArr(), regionEl: this.getRegionArr()};
    
-   for(let j = column - 1; j < puzzleString.length; j += 9){
-     fullListElems.columnEl.push(puzzleString[j])
-      }
- 
+   return fullListElems;
+}
 
-    for(let key in this.objRows){
-      for(let otherKey in this.objCols){
-        if(this.objRows[key]['rowRegion'] == this.objRows[letter]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[column-1]['colRegion']){
-          let positionReg = puzzleString[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
-          fullListElems.regionEl.push(positionReg)
-          region.push(positionReg)
-          }
-        }
-      }
-    return fullListElems;
-    }
 
-callbackFilter(value, index, self){
+callFilter(value, index, self){
   return self.indexOf(value) === index || value == '.';
 }
 
-checkCollections(puzzle){
+
+checkCollections(){
   let flag = true;
   
-  for(let i = 0; i < puzzle.length; i++){
-    let collection = this.searchAreas(puzzle, i) ;
-    let uniqueRow = collection.rowEl.filter(this.callbackFilter); 
-    let uniqueCol = collection.columnEl.filter(this.callbackFilter); 
-    let uniqueRegion = collection.regionEl.filter(this.callbackFilter); 
+  for(let i = 0; i < this.puzzle.length; i++){
+    let collection = this.searchAreas(i) ;
+    let uniqueRow = collection.rowEl.filter(this.callFilter); 
+    let uniqueCol = collection.columnEl.filter(this.callFilter); 
+    let uniqueRegion = collection.regionEl.filter(this.callFilter); 
+
 
       if( !(uniqueRow.length == collection.rowEl.length && uniqueCol.length == collection.columnEl.length && uniqueRegion.length == collection.regionEl.length) ){
       flag = false;
@@ -212,9 +192,9 @@ checkCollections(puzzle){
   }
 
 
-  repeatFuncCleaning(puzzleStr){
-    let candidates = this.getCandidates(puzzleStr);
-    let puzzleArr = puzzleStr.split('');
+  repeatFuncCleaning(){
+    let candidates = this.getCandidates();
+    let puzzleArr = this.puzzle.split('');
     let flag = true;
 
       for(let key in candidates){
@@ -225,42 +205,38 @@ checkCollections(puzzle){
         }
       }
 
-    puzzleStr = puzzleArr.join('')
+    this.puzzle = puzzleArr.join('')
 
     if(!flag){
-
-      puzzleStr = this.repeatFuncCleaning(puzzleStr)
-      return puzzleStr;
+      this.puzzle = this.repeatFuncCleaning(this.puzzle)
+      return this.puzzle;
 
     }else{
-
-      return puzzleStr; 
+      return this.puzzle; 
 
     }
+    console.log(this.puzzle, 'puzzl')
   }
 
 
   solve(objBody) {
     let answer = {};
-    let puzzleString;
+    this.puzzle = objBody.puzzle;
+
     if(objBody.hasOwnProperty('puzzle')){
-      console.log(this.searchAreas(objBody.puzzle, 5), 'search')
-      console.log(this.checkCollections(objBody.puzzle), 'checColl')
-      puzzleString = objBody.puzzle;
-      puzzleString = this.repeatFuncCleaning(puzzleString) ;
-    //console.log(!(puzzleString.indexOf('.') == -1) || !this.checkSolvingPuzzle(objBody.puzzle), 'checking')
+      this.puzzle = this.repeatFuncCleaning(this.puzzle) ;
     }
-    
-    let err = !objBody.hasOwnProperty('puzzle')  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(puzzleString.indexOf('.') == -1) || !this.checkCollections(objBody.puzzle) ?  'Puzzle cannot be solved' : false ; 
+   
+    let err = !objBody.hasOwnProperty('puzzle')  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(this.puzzle.indexOf('.') == -1) || !this.checkCollections() ?  'Puzzle cannot be solved' : false ; 
 
     if(!err){
-      answer.solution = puzzleString;
+      answer.solution = this.puzzle;
     }else{
       answer.error = err
       console.log(err, 'err')
     }
+      console.log(this.puzzle, 'solution')
 
-     // console.log(puzzleString, 'str')
    return answer 
   }
 
