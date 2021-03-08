@@ -192,7 +192,22 @@ suite('Functional Tests', () => {
           done();
         });
       });
- 
+
+  test('Wrong chars in puzzle', function(done) {
+      let fieldsValid = { puzzle: ',.9..5.1.85.4....2432......1...69.83.9.....6.62.71...9......1945....4.37.4.3..6..' }
+
+       chai.request(server)
+        .post('/api/solve')
+        .send(fieldsValid)
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.deepEqual(res.body, { "error": "Invalid characters in puzzle" });
+
+          done();
+        });
+      });
+
+
     test('Short puzzle', function(done) {
       let fieldsValid = { puzzle: '..9..5.1.85.4....2432......1...69.83.9.....6.62' }
 
