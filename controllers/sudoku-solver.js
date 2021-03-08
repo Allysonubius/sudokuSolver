@@ -30,23 +30,24 @@ class SudokuSolver {
 
 
   validate(objBody) {
-    this.objBody = objBody;
     this.puzzle = objBody.puzzle;
-    this.coordinate = objBody.coordinate;
-    this.value = String( objBody.value );
+    this.value = String(objBody.value);
 
-
-    let validFields = this.puzzle &&  this.coordinate  && this.value;
-
-    let validationResult = {row : this.rowNum, column: this.column};
-
-    let  shortErr = !validFields  ? 'Required field(s) missing'  : !( /^([A-I])([1-9])$/.test(this.coordinate)  )? 'Invalid coordinate' :  !( this.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !this.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(objBody.value > 0 && this.value < 10) ? 'Invalid value': false ; 
+    let validFields = this.puzzle &&  objBody.coordinate  && this.value;
+    let validationResult = {};
+    let  shortErr = !validFields  ? 'Required field(s) missing'  
+      : !(/^([A-I])([1-9])$/.test(objBody.coordinate)) ? 'Invalid coordinate' 
+      : !(this.puzzle.length == 81) ? 'Expected puzzle to be 81 characters long' 
+      : !this.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  
+      : !(objBody.value > 0 && this.value < 10) ? 'Invalid value'
+      : false ; 
 
     if(!shortErr){
 
-      this.rowLetter =  this.coordinate.match(/^([A-I])([1-9])$/)[1];
-      this.column = this.coordinate.match(/^([A-I])([1-9])$/)[2];
-      this.rowNum =this.objRows[this.rowLetter]['nn'];
+      this.rowLetter =  objBody.coordinate.match(/^([A-I])([1-9])$/)[1];
+      this.column = objBody.coordinate.match(/^([A-I])([1-9])$/)[2];
+      this.rowNum = this.objRows[this.rowLetter]['nn'];
+
 
       let collection = [
         {area: this.getRowArr().includes(this.value) , name: 'row'},
@@ -59,7 +60,7 @@ class SudokuSolver {
      }else{
         let conflict = [];
           for(let elem of collection){
-            if(elem.area) conflict.push( elem.name )
+            if(elem.area) conflict.push(elem.name)
           }
 
       validationResult.answer = { "valid": false, "conflict": conflict };
@@ -68,13 +69,12 @@ class SudokuSolver {
     }else{
       validationResult.error = shortErr;
     }
-
     return validationResult;
   }
 
   
   ifContainsTheSame(){
-    let addrTd =  ( ( this.rowNum ) * 9 + Number(this.column)  ) - 1;
+    let addrTd =  ((this.rowNum) * 9 + Number(this.column)) - 1;
     return this.puzzle[addrTd] == this.value;
   }
 
@@ -83,7 +83,7 @@ class SudokuSolver {
    let rowArea = this.objRows[this.rowLetter]['pos'];
    let rowArr = []; 
 
-   for(let i = rowArea[0]; i <= rowArea[1] ; i++ ){
+   for(let i = rowArea[0]; i <= rowArea[1]; i++){
      rowArr.push(this.puzzle[i]) ;
    }
     return rowArr;
@@ -93,10 +93,7 @@ class SudokuSolver {
   getColArr() {
    let columnArr = [];
 
-     for(let j = this.column - 1; j < this.puzzle.length; j += 9){
-       columnArr.push(this.puzzle[j])
-    } 
-
+   for(let j = this.column-1; j < this.puzzle.length; j += 9){ columnArr.push(this.puzzle[j]) } 
     return columnArr;
   }
 
@@ -106,21 +103,20 @@ class SudokuSolver {
     for(let key in this.objRows){
       for(let otherKey in this.objCols){
         if(this.objRows[key]['rowRegion'] == this.objRows[this.rowLetter]['rowRegion'] && this.objCols[otherKey]['colRegion'] == this.objCols[this.column-1]['colRegion']){
-          let positionReg = this.puzzle[ this.objRows[key]['nn'] * 9 + Number( otherKey )];
-          region.push(positionReg)
-        }
-      } 
-    }
+          let positionReg = this.puzzle[ this.objRows[key]['nn'] * 9 + Number(otherKey)];
+          region.push(positionReg);
+        } } }
     return region;
   }
 
   getCleanAreasBool(){
     this.value = String(this.value);
-    let rowArr = this.getRowArr();
-    let colArr = this.getColArr();
-    let regionArr = this.getRegionArr();
 
-      return  !( rowArr.includes(this.value) || colArr.includes(this.value) || regionArr.includes(this.value) ) ? true : false;
+    return  !(
+      this.getRowArr().includes(this.value) || 
+      this.getColArr().includes(this.value) || 
+      this.getRegionArr().includes(this.value) 
+  ) ? true : false;
   }
 
 getCandidates(){
@@ -129,11 +125,10 @@ getCandidates(){
     for(let i = 0; i < this.puzzle.length; i++){
       if(this.puzzle[i] === '.'){
         candidates[i] = [];
-        this.column = ( i % 9 ) + 1;
-        let rowNumTemp = Math.floor( i / 9 );
+        this.getRowAndColByAddrTd(i);
 
         for(let key in this.objRows){
-          if(this.objRows[key]['nn'] == rowNumTemp){
+          if(this.objRows[key]['nn'] == this.rowNum){
             this.rowLetter = key;
 
             for(let j = 1; j <= 9; j++){
@@ -141,20 +136,18 @@ getCandidates(){
               
                if(this.getCleanAreasBool()){
                   candidates[i].push(j);
-               }
-            }
-          }
-        }
-      }
-    }
+   } } } } } }
   return candidates;
 }
 
- searchAreas(addrTd){
-    this.column = ( addrTd % 9 ) + 1;
+  getRowAndColByAddrTd(addrTd){
+    this.column = (addrTd % 9) + 1;
     this.rowNum = Math.floor(addrTd  / 9);
+  }
+
+  searchAreas(addrTd){
     let region = [];
-   
+    this.getRowAndColByAddrTd(addrTd);
     for(let keyLetter in this.objRows){
       if(this.objRows[keyLetter]['nn'] == this.rowNum){
         this.rowLetter = keyLetter;
@@ -163,7 +156,7 @@ getCandidates(){
 
     let fullListElems = {rowEl: this.getRowArr(), columnEl: this.getColArr(), regionEl: this.getRegionArr()};
    
-   return fullListElems;
+    return fullListElems;
 }
 
 
@@ -172,22 +165,22 @@ callFilter(value, index, self){
 }
 
 
-checkCollections(){
+checkCollections(puzzle){
   let flag = true;
   
-  for(let i = 0; i < this.puzzle.length; i++){
+  for(let i = 0; i < puzzle.length; i++){
     let collection = this.searchAreas(i) ;
     let uniqueRow = collection.rowEl.filter(this.callFilter); 
     let uniqueCol = collection.columnEl.filter(this.callFilter); 
     let uniqueRegion = collection.regionEl.filter(this.callFilter); 
 
 
-      if( !(uniqueRow.length == collection.rowEl.length && uniqueCol.length == collection.columnEl.length && uniqueRegion.length == collection.regionEl.length) ){
+      if(uniqueRow.length != collection.rowEl.length || uniqueCol.length != collection.columnEl.length || uniqueRegion.length != collection.regionEl.length){
       flag = false;
       break;
     }
   }
-
+  console.log(flag, 'checkColFlag')
   return flag;
   }
 
@@ -198,7 +191,6 @@ checkCollections(){
     let flag = true;
 
       for(let key in candidates){
-
         if(candidates[key].length == 1){
           puzzleArr[key] = candidates[key][0];
           flag = false;
@@ -213,7 +205,6 @@ checkCollections(){
 
     }else{
       return this.puzzle; 
-
     }
     console.log(this.puzzle, 'puzzl')
   }
@@ -221,13 +212,17 @@ checkCollections(){
 
   solve(objBody) {
     let answer = {};
-    this.puzzle = objBody.puzzle;
 
     if(objBody.hasOwnProperty('puzzle')){
+      this.puzzle = objBody.puzzle;
       this.puzzle = this.repeatFuncCleaning(this.puzzle) ;
     }
    
-    let err = !objBody.hasOwnProperty('puzzle')  ? 'Required field missing'  :  !( objBody.puzzle.length == 81 ) ? 'Expected puzzle to be 81 characters long' : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  : !(this.puzzle.indexOf('.') == -1) || !this.checkCollections() ?  'Puzzle cannot be solved' : false ; 
+    let err = !objBody.hasOwnProperty('puzzle')  ? 'Required field missing'  
+      :  !(objBody.puzzle.length == 81) ? 'Expected puzzle to be 81 characters long' 
+      : !objBody.puzzle.split('').every(item => item > 0 && item < 10 || item == '.') ? 'Invalid characters in puzzle'  
+      : this.puzzle.indexOf('.') != -1 || !this.checkCollections(objBody.puzzle) ?  'Puzzle cannot be solved' 
+      : false ; 
 
     if(!err){
       answer.solution = this.puzzle;
@@ -235,7 +230,7 @@ checkCollections(){
       answer.error = err
       console.log(err, 'err')
     }
-      console.log(this.puzzle, 'solution')
+      console.log(answer, 'solution')
 
    return answer 
   }
